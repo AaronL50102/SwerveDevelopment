@@ -13,6 +13,10 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj.SerialPort;
 import com.kauailabs.navx.frc.*;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
+import com.pathplanner.lib.util.PIDConstants;
+import com.pathplanner.lib.util.ReplanningConfig;
 
 import frc.robot.Constants;
 
@@ -48,6 +52,22 @@ public class Swerve extends SubsystemBase {
           positions);
     field = new Field2d();
     SmartDashboard.putData("Field", field);
+
+    //Path Planner - AutoBuilder
+    AutoBuilder.configureHolonomic(
+      this::getPose,
+      this::resetOdometry,
+      this::getSpeed,
+      this::driveRobotRelative,
+      new HolonomicPathFollowerConfig(
+        new PIDConstants(5.0, 0.0, 0.0),
+        new PIDConstants(5.0, 0.0, 0.0),
+        4.5,
+        0.4,
+        new ReplanningConfig()
+        ),
+        this
+      );
   }
 
   public void drive(
@@ -118,5 +138,17 @@ public class Swerve extends SubsystemBase {
       SmartDashboard.putNumber(
           "Mod " + mod.moduleNumber + " Velocity", mod.getState().speedMetersPerSecond);
     }
+  }
+
+  //Path Planner - AutoBuilder
+  public ChassisSpeeds getSpeed(){
+    return Constants.Swerve.swerveKinematics.toChassisSpeeds(getStates());
+  }
+  public void driveRobotRelative(ChassisSpeeds robotRelativeSpeeds) {
+    
+    ChassisSpeeds targetSpeeds = robotRelativeSpeeds;//ChassisSpeeds.discretize(robotRelativeSpeeds, 0.02);
+
+    SwerveModuleState[] targetStates = Constants.Swerve.swerveKinematics.toSwerveModuleStates(targetSpeeds);
+    setModuleStates(targetStates);
   }
 }
