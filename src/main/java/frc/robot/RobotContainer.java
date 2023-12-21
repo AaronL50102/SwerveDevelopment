@@ -73,14 +73,15 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
-    PathPlannerAuto path = new PathPlannerAuto("TestPath");
-    SmartDashboard.putData("Test Auto", AutoBuilder.pathfindToPose(
-      new Pose2d(14.0, 6.5, Rotation2d.fromDegrees(0)), new PathConstraints(
-        4.0, 4.0,
-        Units.degreesToRadians(360), Units.degreesToRadians(540)),
-        0,
-        2.0
-      ));
+    // PathPlannerAuto path = new PathPlannerAuto("TestPath");
+    // SmartDashboard.putData("Test Auto", AutoBuilder.pathfindToPose(
+    //   new Pose2d(14.0, 6.5, Rotation2d.fromDegrees(0)), new PathConstraints(
+    //     4.0, 4.0,
+    //     Units.degreesToRadians(360), Units.degreesToRadians(540)),
+    //     0,
+    //     2.0
+    //   ));
+    // SmartDashboard.put
     /* Driver Buttons */
     zeroGyro.whenPressed(new InstantCommand(() -> s_Swerve.zeroGyro()));
   }
