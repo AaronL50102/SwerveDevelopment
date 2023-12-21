@@ -5,15 +5,21 @@
 package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-import frc.robot.autos.*;
 import frc.robot.commands.*;
 import frc.robot.subsystems.*;
 
@@ -42,6 +48,9 @@ public class RobotContainer {
   private final Swerve s_Swerve = new Swerve();
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
+
+  private final SendableChooser<Command> autoChooser;
+
   public RobotContainer() {
     s_Swerve.setDefaultCommand(
         new TeleopSwerve(
@@ -50,9 +59,11 @@ public class RobotContainer {
             () -> driver.getRawAxis(strafeAxis),
             () -> -driver.getRawAxis(rotationAxis),
             () -> robotCentric.getAsBoolean()));
-
     // Configure the button bindings
     configureButtonBindings();
+
+    autoChooser = AutoBuilder.buildAutoChooser();
+    SmartDashboard.putData("Auto Mode", autoChooser);
   }
 
   /**
@@ -62,6 +73,14 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
+    PathPlannerAuto path = new PathPlannerAuto("TestPath");
+    SmartDashboard.putData("Test Auto", AutoBuilder.pathfindToPose(
+      new Pose2d(14.0, 6.5, Rotation2d.fromDegrees(0)), new PathConstraints(
+        4.0, 4.0,
+        Units.degreesToRadians(360), Units.degreesToRadians(540)),
+        0,
+        2.0
+      ));
     /* Driver Buttons */
     zeroGyro.whenPressed(new InstantCommand(() -> s_Swerve.zeroGyro()));
   }
