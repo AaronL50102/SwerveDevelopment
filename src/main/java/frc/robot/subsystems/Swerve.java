@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -10,13 +11,15 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj.SerialPort;
 import com.kauailabs.navx.frc.*;
-import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
-import com.pathplanner.lib.util.PIDConstants;
-import com.pathplanner.lib.util.ReplanningConfig;
+// import com.pathplanner.lib.auto.AutoBuilder;
+// import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
+// import com.pathplanner.lib.util.PIDConstants;
+// import com.pathplanner.lib.util.ReplanningConfig;
+import com.pathplanner.lib.*;
+import com.pathplanner.lib.commands.PPSwerveControllerCommand;
 
 import frc.robot.Constants;
 
@@ -52,22 +55,6 @@ public class Swerve extends SubsystemBase {
           positions);
     field = new Field2d();
     SmartDashboard.putData("Field", field);
-
-    //Path Planner - AutoBuilder
-    AutoBuilder.configureHolonomic(
-      this::getPose,
-      this::resetOdometry,
-      this::getSpeed,
-      this::driveRobotRelative,
-      new HolonomicPathFollowerConfig(
-        new PIDConstants(5.0, 0.0, 0.0),
-        new PIDConstants(5.0, 0.0, 0.0),
-        4.5,
-        0.4,
-        new ReplanningConfig()
-        ),
-        this
-      );
   }
 
   public void drive(
@@ -140,7 +127,28 @@ public class Swerve extends SubsystemBase {
     }
   }
 
-  //Path Planner - AutoBuilder
+  //Path Planner - SwerveControllerCommand
+  public Command followTrajectoryCommand(PathPlannerTrajectory traj, boolean isFirstPath) {
+    return new SequentialCommandGroup(
+         new InstantCommand(() -> {
+           // Reset odometry for the first path you run during auto
+           if(isFirstPath){resetOdometry(traj.getInitialHolonomicPose());}
+         }),
+         new PPSwerveControllerCommand(
+             traj, 
+             this::getPose, // Pose supplier
+             Constants.Swerve.swerveKinematics, // SwerveDriveKinematics
+             new PIDController(0.5, 0, 0), // X controller. Tune these values for your robot. Leaving them 0 will only use feedforwards.
+             new PIDController(0.5, 0, 0), // Y controller (usually the same values as X controller)
+             new PIDController(0.5, 0, 0), // Rotation controller. Tune these values for your robot. Leaving them 0 will only use feedforwards.
+             this::setModuleStates, // Module states consumer
+             true, // Should the path be automatically mirrored depending on alliance color. Optional, defaults to true
+             this // Requires this drive subsystem
+         )
+     );
+  }
+
+  //Methods for PathPlanner (may not be needed)
   public ChassisSpeeds getSpeed(){
     return Constants.Swerve.swerveKinematics.toChassisSpeeds(getStates());
   }

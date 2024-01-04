@@ -4,10 +4,16 @@
 
 package frc.robot;
 
-import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.commands.PathPlannerAuto;
-import com.pathplanner.lib.path.PathConstraints;
-import com.pathplanner.lib.path.PathPlannerPath;
+import java.util.*;
+
+// import com.pathplanner.lib.auto.AutoBuilder;
+// import com.pathplanner.lib.commands.PathPlannerAuto;
+// import com.pathplanner.lib.path.PathConstraints;
+// import com.pathplanner.lib.path.PathPlannerPath;
+// import com.pathplanner.lib.auto.*;
+import com.pathplanner.lib.*;
+import com.pathplanner.lib.auto.PIDConstants;
+import com.pathplanner.lib.auto.SwerveAutoBuilder;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -20,6 +26,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import frc.robot.autos.exampleAuto;
 import frc.robot.commands.*;
 import frc.robot.subsystems.*;
 
@@ -49,8 +56,6 @@ public class RobotContainer {
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
 
-  private final SendableChooser<Command> autoChooser;
-
   public RobotContainer() {
     s_Swerve.setDefaultCommand(
         new TeleopSwerve(
@@ -61,9 +66,6 @@ public class RobotContainer {
             () -> robotCentric.getAsBoolean()));
     // Configure the button bindings
     configureButtonBindings();
-
-    autoChooser = AutoBuilder.buildAutoChooser();
-    SmartDashboard.putData("Auto Mode", autoChooser);
   }
 
   /**
@@ -91,10 +93,35 @@ public class RobotContainer {
    *
    * @return the command to run in autonomous
    */
+  
   public Command getAutonomousCommand() {
     // An ExampleCommand will run in autonomous
     //return new exampleAuto(s_Swerve);
-    PathPlannerPath path = PathPlannerPath.fromPathFile("TestPath");
-    return AutoBuilder.followPathWithEvents(path);
+
+    //Using SwerveControllerCommand
+    PathPlannerTrajectory path = PathPlanner.loadPath("TestPath", new PathConstraints(3, 3));
+    //return s_Swerve.followTrajectoryCommand(path, true);
+
+    //Using AutoBuilder
+    List<PathPlannerTrajectory> pathGroup = PathPlanner.loadPathGroup("TestAuto", new PathConstraints(4, 3));
+
+    HashMap<String, Command> eventMap = new HashMap<>();
+    //eventMap.put("marker1", new PrintCommand("Passed marker 1"));
+    //eventMap.put("intakeDown", new IntakeDown());
+
+    SwerveAutoBuilder autoBuilder = new SwerveAutoBuilder(
+    s_Swerve::getPose, // Pose2d supplier
+    s_Swerve::resetOdometry, // Pose2d consumer, used to reset odometry at the beginning of auto
+    Constants.Swerve.swerveKinematics, // SwerveDriveKinematics
+    new PIDConstants(5.0, 0.0, 0.0), // PID constants to correct for translation error (used to create the X and Y PID controllers)
+    new PIDConstants(0.5, 0.0, 0.0), // PID constants to correct for rotation error (used to create the rotation controller)
+    s_Swerve::setModuleStates, // Module states consumer used to output to the drive subsystem
+    eventMap,
+    true, // Should the path be automatically mirrored depending on alliance color. Optional, defaults to true
+    s_Swerve // The drive subsystem. Used to properly set the requirements of path following commands
+    );
+
+    Command fullAuto = autoBuilder.fullAuto(pathGroup);
+    return fullAuto;
   }
 }
