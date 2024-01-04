@@ -100,28 +100,26 @@ public class RobotContainer {
 
     //Using SwerveControllerCommand
     PathPlannerTrajectory path = PathPlanner.loadPath("TestPath", new PathConstraints(3, 3));
-    //return s_Swerve.followTrajectoryCommand(path, true);
+    return s_Swerve.followTrajectoryCommand(path, true);
 
     //Using AutoBuilder
-    List<PathPlannerTrajectory> pathGroup = PathPlanner.loadPathGroup("TestAuto", new PathConstraints(4, 3));
+    // List<PathPlannerTrajectory> pathGroup = PathPlanner.loadPathGroup("TestAuto", new PathConstraints(4, 3));
 
-    HashMap<String, Command> eventMap = new HashMap<>();
-    //eventMap.put("marker1", new PrintCommand("Passed marker 1"));
-    //eventMap.put("intakeDown", new IntakeDown());
+    // HashMap<String, Command> eventMap = new HashMap<>();
 
-    SwerveAutoBuilder autoBuilder = new SwerveAutoBuilder(
-    s_Swerve::getPose, // Pose2d supplier
-    s_Swerve::resetOdometry, // Pose2d consumer, used to reset odometry at the beginning of auto
-    Constants.Swerve.swerveKinematics, // SwerveDriveKinematics
-    new PIDConstants(5.0, 0.0, 0.0), // PID constants to correct for translation error (used to create the X and Y PID controllers)
-    new PIDConstants(0.5, 0.0, 0.0), // PID constants to correct for rotation error (used to create the rotation controller)
-    s_Swerve::setModuleStates, // Module states consumer used to output to the drive subsystem
-    eventMap,
-    true, // Should the path be automatically mirrored depending on alliance color. Optional, defaults to true
-    s_Swerve // The drive subsystem. Used to properly set the requirements of path following commands
-    );
+    // SwerveAutoBuilder autoBuilder = new SwerveAutoBuilder(
+    // s_Swerve::getPose, // Pose2d supplier
+    // s_Swerve::resetOdometry, // Pose2d consumer, used to reset odometry at the beginning of auto
+    // Constants.Swerve.swerveKinematics, // SwerveDriveKinematics
+    // new PIDConstants(5.0, 0.0, 0.0), // PID constants to correct for translation error (used to create the X and Y PID controllers)
+    // new PIDConstants(0.5, 0.0, 0.0), // PID constants to correct for rotation error (used to create the rotation controller)
+    // s_Swerve::setModuleStates, // Module states consumer used to output to the drive subsystem
+    // eventMap,
+    // true, // Should the path be automatically mirrored depending on alliance color. Optional, defaults to true
+    // s_Swerve // The drive subsystem. Used to properly set the requirements of path following commands
+    // );
 
-    Command fullAuto = autoBuilder.fullAuto(pathGroup);
-    return fullAuto;
+    // Command fullAuto = autoBuilder.fullAuto(pathGroup);
+    // return fullAuto;
   }
 }
